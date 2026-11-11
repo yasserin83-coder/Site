@@ -1,18 +1,17 @@
 from fastapi import FastAPI, Request, Form, UploadFile, File, HTTPException
 from fastapi.responses import HTMLResponse
 import uvicorn
-import os, time, random
+import os, time
 from motor.motor_asyncio import AsyncIOMotorClient
 
 app = FastAPI()
 
 # ==================== ⚙️ إعدادات ====================
-ADMIN_PASSWORD = "admin123"
+ADMIN_PASSWORD = "admin123" # غير كلمة سر لوحة التحكم هنا
 
-# ⚠️ ضع رابط قاعدة البيانات الجديد هنا (بعد تغيير كلمة السر التي تم كشفها)
-MONGO_URI = "mongodb+srv://yasserin83_db_user:NEW_PASSWORD_HERE@cluster0.bohuice.mongodb.net/?retryWrites=true&w=majority"
+# قراءة رابط قاعدة البيانات من إعدادات Render (لا تضع كلمة السر هنا)
+MONGO_URI = os.getenv("MONGO_URI", "mongodb+srv://YOUR_USERNAME:YOUR_PASSWORD@cluster0.xxxxx.mongodb.net/?retryWrites=true&w=majority")
 
-# الاتصال بقاعدة البيانات
 client = AsyncIOMotorClient(MONGO_URI)
 db = client.cpm_vault
 accounts_col = db.accounts
