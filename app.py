@@ -1,7 +1,7 @@
 from fastapi import FastAPI, Request, Form, UploadFile, File, HTTPException
 from fastapi.responses import HTMLResponse
 import uvicorn
-import os, random, time
+import os, time, random
 from motor.motor_asyncio import AsyncIOMotorClient
 
 app = FastAPI()
@@ -9,59 +9,109 @@ app = FastAPI()
 # ==================== ⚙️ إعدادات ====================
 ADMIN_PASSWORD = "admin123"
 
-# ⚠️ ضع رابط قاعدة البيانات هنا (بعد استبدال كلمة السر)
-# ⚠️ أو قم بتعيينه كـ Environment Variable في Render باسم MONGO_URI
-MONGO_URI = os.getenv("MONGO_URI", "mongodb+srv://YOUR_USERNAME:YOUR_PASSWORD@cluster0.xxxxx.mongodb.net/?retryWrites=true&w=majority")
+# ⚠️ ضع رابط قاعدة البيانات الجديد هنا (بعد تغيير كلمة السر التي تم كشفها)
+MONGO_URI = "mongodb+srv://yasserin83_db_user:NEW_PASSWORD_HERE@cluster0.bohuice.mongodb.net/?retryWrites=true&w=majority"
 
+# الاتصال بقاعدة البيانات
 client = AsyncIOMotorClient(MONGO_URI)
 db = client.cpm_vault
 accounts_col = db.accounts
 ips_col = db.ips
 
-# ==================== 🎨 الواجهة الرئيسية ====================
+# ==================== 🎨 الواجهة الأمامية (YASSER CPM) ====================
 HTML_MAIN = """
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Secret CPM Vault</title>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;800;900&display=swap" rel="stylesheet">
+    <title>YASSER CPM | Secret Vault</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;800;900&family=Cinzel:wght@700;900&display=swap" rel="stylesheet">
     <style>
-        :root { --primary: #8a2be2; --glow: rgba(138, 43, 226, 0.4); --bg: #020204; }
+        :root { 
+            --primary: #ffd700; 
+            --glow: rgba(255, 215, 0, 0.4); 
+            --bg: #050403; 
+            --card: rgba(15, 12, 10, 0.85);
+        }
         * { box-sizing: border-box; font-family: 'Outfit', sans-serif; margin: 0; padding: 0; }
-        body { background-color: var(--bg); color: #fff; height: 100vh; display: flex; justify-content: center; align-items: center; overflow: hidden; position: relative; }
+        
+        body { 
+            background-color: var(--bg); color: #fff; height: 100vh; 
+            display: flex; flex-direction: column; justify-content: center; align-items: center; 
+            overflow: hidden; position: relative; 
+            background-image: radial-gradient(circle at 50% -20%, #2a1f00 0%, #000 60%);
+        }
+
+        /* نجوم الخلفية الغامضة */
         .stars { position: absolute; width: 100%; height: 100%; z-index: 0; overflow: hidden; }
-        .star { position: absolute; background: white; border-radius: 50%; opacity: 0.5; animation: twinkle infinite alternate; }
-        @keyframes twinkle { from { opacity: 0.1; transform: scale(0.8); } to { opacity: 0.8; transform: scale(1.2); box-shadow: 0 0 10px white; } }
-        .vault-card { position: relative; z-index: 10; width: 100%; max-width: 400px; background: rgba(10, 10, 15, 0.7); backdrop-filter: blur(20px); border: 1px solid rgba(138, 43, 226, 0.3); border-radius: 30px; padding: 40px 30px; text-align: center; box-shadow: 0 0 50px rgba(138, 43, 226, 0.15); animation: floatCard 6s ease-in-out infinite; }
-        @keyframes floatCard { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-15px); } }
-        .orb { width: 100px; height: 100px; margin: 0 auto 25px auto; border-radius: 50%; background: radial-gradient(circle, rgba(138, 43, 226, 0.8) 0%, transparent 70%); border: 2px solid var(--primary); display: flex; justify-content: center; align-items: center; font-size: 40px; box-shadow: 0 0 30px var(--glow); animation: pulseOrb 2s infinite alternate; }
+        .star { position: absolute; background: #fff; border-radius: 50%; opacity: 0.3; animation: twinkle infinite alternate; }
+        @keyframes twinkle { from { opacity: 0.1; transform: scale(0.8); } to { opacity: 0.8; transform: scale(1.2); box-shadow: 0 0 10px var(--primary); } }
+
+        /* الكارت الزجاجي الفخم */
+        .vault-card { 
+            position: relative; z-index: 10; width: 100%; max-width: 420px; 
+            background: var(--card); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 215, 0, 0.2); border-radius: 30px; 
+            padding: 40px 30px; text-align: center; 
+            box-shadow: 0 0 50px rgba(255, 215, 0, 0.1), inset 0 0 20px rgba(255, 215, 0, 0.05);
+            animation: floatCard 6s ease-in-out infinite;
+        }
+        @keyframes floatCard { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+
+        /* اسم الموقع الفخم */
+        .brand {
+            font-family: 'Cinzel', serif; font-size: 36px; font-weight: 900;
+            background: linear-gradient(to right, #bf953f, #fcf6ba, #b38728, #fbf5b7, #aa771c);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 20px rgba(255, 215, 0, 0.3); margin-bottom: 5px;
+            letter-spacing: 2px;
+        }
+        .subtitle { font-size: 13px; color: #888; margin-bottom: 30px; letter-spacing: 1px; }
+
+        /* الدائرة المتوهجة */
+        .orb { 
+            width: 90px; height: 90px; margin: 0 auto 20px auto; border-radius: 50%; 
+            background: radial-gradient(circle, rgba(255, 215, 0, 0.4) 0%, transparent 70%); 
+            border: 2px solid var(--primary); display: flex; justify-content: center; align-items: center; 
+            font-size: 40px; box-shadow: 0 0 30px var(--glow); 
+            animation: pulseOrb 2s infinite alternate; 
+        }
         @keyframes pulseOrb { from { box-shadow: 0 0 20px var(--glow); } to { box-shadow: 0 0 60px var(--glow), 0 0 100px var(--primary); transform: scale(1.05); } }
-        h1 { font-size: 28px; font-weight: 900; margin-bottom: 10px; color: #fff; text-shadow: 0 0 10px var(--glow); }
-        p { font-size: 14px; color: #888; margin-bottom: 30px; line-height: 1.6; }
-        .btn { width: 100%; padding: 18px; border: none; border-radius: 16px; background: linear-gradient(45deg, #4b0082, #8a2be2); color: #fff; font-size: 18px; font-weight: 800; cursor: pointer; box-shadow: 0 0 20px var(--glow); transition: 0.3s; }
+
+        /* الزر الملكي */
+        .btn { 
+            width: 100%; padding: 18px; border: none; border-radius: 16px; 
+            background: linear-gradient(45deg, #bf953f, #fcf6ba, #b38728); 
+            color: #000; font-size: 18px; font-weight: 900; cursor: pointer; 
+            box-shadow: 0 0 20px var(--glow); transition: 0.3s; 
+            font-family: 'Outfit', sans-serif;
+        }
         .btn:hover { transform: scale(1.02); box-shadow: 0 0 40px var(--glow); }
-        
+        .btn:disabled { background: #333; color: #777; box-shadow: none; cursor: not-allowed; }
+
+        /* صندوق الحساب */
         .account-box { display: none; text-align: right; margin-top: 20px; animation: slideUp 0.5s ease; }
-        .data-row { background: rgba(0,0,0,0.5); padding: 15px; border-radius: 12px; margin-bottom: 10px; border: 1px solid rgba(255,255,255,0.05); display: flex; justify-content: space-between; align-items: center; }
-        .data-row span { font-family: monospace; font-size: 15px; color: #00ffcc; direction: ltr; }
-        .copy-btn { background: rgba(255,255,255,0.1); border: none; color: #fff; padding: 5px 10px; border-radius: 6px; cursor: pointer; }
-        .copy-btn:hover { background: var(--primary); }
-        
-        #error-box { display: none; background: rgba(255, 0, 0, 0.2); border: 1px solid red; color: #ff9999; padding: 15px; border-radius: 12px; margin-top: 20px; font-weight: bold; line-height: 1.6; }
-        
-        .trust-msg { margin-top: 20px; padding: 15px; background: rgba(255, 215, 0, 0.1); border: 1px dashed #ffd700; border-radius: 12px; color: #ffd700; font-size: 14px; font-weight: 600; display: none; animation: blink 2s infinite; }
-        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }
+        .data-row { 
+            background: rgba(0,0,0,0.6); padding: 15px; border-radius: 12px; margin-bottom: 10px; 
+            border: 1px solid rgba(255, 215, 0, 0.2); display: flex; justify-content: space-between; align-items: center; 
+        }
+        .data-row span { font-family: monospace; font-size: 15px; color: var(--primary); direction: ltr; }
+        .copy-btn { background: rgba(255,215,0,0.1); border: 1px solid var(--primary); color: var(--primary); padding: 5px 10px; border-radius: 6px; cursor: pointer; font-weight: bold; }
+        .copy-btn:hover { background: var(--primary); color: #000; }
+
+        /* الرسائل */
+        #error-box { display: none; background: rgba(255, 0, 0, 0.2); border: 1px solid red; color: #ff9999; padding: 15px; border-radius: 12px; margin-top: 20px; font-weight: bold; line-height: 1.6; font-size: 14px; }
+        .trust-msg { margin-top: 20px; padding: 15px; background: rgba(255, 255, 255, 0.05); border: 1px dashed #888; border-radius: 12px; color: #ccc; font-size: 13px; font-weight: 600; display: none; }
         @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
 <body>
     <div class="stars" id="stars"></div>
     <div class="vault-card">
-        <div class="orb">🔐</div>
-        <h1>CPM SECRET VAULT</h1>
-        <p>خزنة الحسابات السرية. اضغط للحصول على حسابك العشوائي قبل نفاد الكمية.</p>
+        <div class="orb">👑</div>
+        <div class="brand">YASSER CPM</div>
+        <div class="subtitle">EXCLUSIVE ACCOUNT VAULT</div>
         
         <button class="btn" id="main-btn" onclick="getAccount()">احصل على حساب الآن 🚀</button>
         
@@ -82,9 +132,9 @@ HTML_MAIN = """
 
     <script>
         const starsContainer = document.getElementById('stars');
-        for(let i=0; i<50; i++) {
+        for(let i=0; i<60; i++) {
             let star = document.createElement('div'); star.className = 'star';
-            star.style.width = Math.random() * 3 + 'px'; star.style.height = star.style.width;
+            star.style.width = Math.random() * 2 + 'px'; star.style.height = star.style.width;
             star.style.left = Math.random() * 100 + '%'; star.style.top = Math.random() * 100 + '%';
             star.style.animationDuration = (Math.random() * 3 + 1) + 's'; star.style.animationDelay = Math.random() * 2 + 's';
             starsContainer.appendChild(star);
@@ -106,17 +156,17 @@ HTML_MAIN = """
                 const res = await fetch('/api/get_account', { method: 'POST' });
                 const data = await res.json();
                 
-                btn.disabled = false;
-                btn.innerText = "احصل على حساب آخر 🚀";
-
                 if (data.success) {
                     accBox.style.display = 'block';
                     trustMsg.style.display = 'block';
                     document.getElementById('res-email').innerText = data.email;
                     document.getElementById('res-pass').innerText = data.password;
+                    btn.innerText = "تم السحب بنجاح ✅";
                 } else {
                     errBox.innerText = "❌ " + data.error;
                     errBox.style.display = 'block';
+                    btn.disabled = false;
+                    btn.innerText = "احصل على حساب الآن 🚀";
                 }
             } catch(e) {
                 btn.disabled = false;
@@ -140,39 +190,39 @@ ADMIN_HTML_TEMPLATE = """
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-    <meta charset="UTF-8"><title>Admin - Stock</title>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600&display=swap" rel="stylesheet">
+    <meta charset="UTF-8"><title>YASSER CPM Admin</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;800&display=swap" rel="stylesheet">
     <style>
-        body { background: #020204; color: #fff; font-family: 'Outfit', sans-serif; padding: 20px; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
-        .box { width: 100%; max-width: 600px; background: #111; padding: 30px; border-radius: 24px; border: 1px solid #8a2be2; }
-        h1 { text-align: center; color: #8a2be2; margin-bottom: 20px; }
+        body { background: #050403; color: #fff; font-family: 'Outfit', sans-serif; padding: 20px; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
+        .box { width: 100%; max-width: 600px; background: rgba(20, 15, 10, 0.9); padding: 35px; border-radius: 24px; border: 1px solid #ffd700; box-shadow: 0 0 30px rgba(255, 215, 0, 0.15); }
+        h1 { text-align: center; color: #ffd700; margin-bottom: 25px; font-weight: 800; font-size: 24px; }
         .tabs { display: flex; margin-bottom: 20px; border-bottom: 1px solid #333; }
-        .tab { flex: 1; text-align: center; padding: 10px; cursor: pointer; color: #888; font-weight: bold; }
-        .tab.active { color: #8a2be2; border-bottom: 2px solid #8a2be2; }
+        .tab { flex: 1; text-align: center; padding: 12px; cursor: pointer; color: #888; font-weight: bold; }
+        .tab.active { color: #ffd700; border-bottom: 2px solid #ffd700; }
         .tab-content { display: none; }
         .tab-content.active { display: block; }
-        textarea { width: 100%; height: 150px; padding: 15px; margin-bottom: 15px; background: #000; border: 1px dashed #555; border-radius: 12px; color: #fff; font-family: monospace; box-sizing: border-box; resize: vertical; }
+        textarea { width: 100%; height: 180px; padding: 15px; margin-bottom: 15px; background: #000; border: 1px dashed #555; border-radius: 12px; color: #fff; font-family: monospace; box-sizing: border-box; resize: vertical; }
         input[type="file"] { width: 100%; padding: 15px; margin-bottom: 15px; background: #000; border: 1px dashed #555; border-radius: 12px; color: #fff; box-sizing: border-box; }
-        button { width: 100%; padding: 15px; background: #8a2be2; color: #fff; font-weight: bold; border: none; border-radius: 12px; cursor: pointer; font-size: 16px; }
-        button:hover { background: #6a1b9a; }
-        .stats { text-align: center; margin-top: 20px; padding: 15px; background: rgba(0, 255, 0, 0.1); border: 1px solid lime; border-radius: 12px; color: lime; font-weight: bold; font-size: 18px; }
+        button { width: 100%; padding: 15px; background: linear-gradient(45deg, #bf953f, #fcf6ba); color: #000; font-weight: 900; border: none; border-radius: 12px; cursor: pointer; font-size: 16px; transition: 0.3s; }
+        button:hover { transform: scale(1.02); box-shadow: 0 0 20px rgba(255,215,0,0.4); }
+        .stats { text-align: center; margin-top: 25px; padding: 15px; background: rgba(255, 215, 0, 0.1); border: 1px solid #ffd700; border-radius: 12px; color: #ffd700; font-weight: bold; font-size: 18px; }
         .back-link { display: block; text-align: center; margin-top: 20px; color: #aaa; text-decoration: none; }
     </style>
 </head>
 <body>
     <div class="box">
-        <h1>إدارة المخزون</h1>
+        <h1>إدارة مخزون الحسابات</h1>
         
         <div class="tabs">
             <div class="tab active" onclick="switchTab('manual')">إدخال يدوي</div>
-            <div class="tab" onclick="switchTab('file')">رفع ملف txt</div>
+            <div class="tab" onclick="switchTab('file')">رفع ملف .txt</div>
         </div>
 
         <div id="manual" class="tab-content active">
             <form action="/admin/add_manual" method="post">
                 <input type="hidden" name="passkey" value="__PASSKEY__">
                 <textarea name="accounts_data" placeholder="الصق الحسابات هنا بهذا الشكل:&#10;email1@gmail.com:pass123&#10;email2@gmail.com:pass456" required></textarea>
-                <button type="submit">إضافة الحسابات للمخزون ➕</button>
+                <button type="submit">إضافة الحسابات للسحابة ➕</button>
             </form>
         </div>
 
@@ -210,11 +260,11 @@ async def get_account(request: Request):
     client_ip = request.client.host
     now = time.time()
 
-    # 1. التحقق من الـ IP في قاعدة البيانات
+    # 1. التحقق من الـ IP في قاعدة البيانات (حساب واحد كل 24 ساعة)
     ip_doc = await ips_col.find_one({"_id": client_ip})
     if ip_doc:
         time_passed = now - ip_doc["last_claimed"]
-        if time_passed < 86400: # 24 ساعة
+        if time_passed < 86400: # 86400 ثانية = 24 ساعة
             remain_sec = 86400 - time_passed
             hours = int(remain_sec // 3600)
             minutes = int((remain_sec % 3600) // 60)
@@ -223,16 +273,16 @@ async def get_account(request: Request):
                 "error": f"عذراً، يمكنك الحصول على حساب واحد فقط كل 24 ساعة.\nمتبقي لك: {hours} ساعة و {minutes} دقيقة."
             }
 
-    # 2. سحب حساب عشوائي وتحديث حالته إلى "مأخوذ" (بشكل ذري لمنع التعارض)
+    # 2. سحب حساب عشوائي وتغيير حالته (لمنع حصول شخصين على نفس الحساب)
     acc = await accounts_col.find_one_and_update(
         {"is_taken": False},
         {"$set": {"is_taken": True}}
     )
     
     if not acc:
-        return {"success": False, "error": "المخزون فارغ! المطور لم يقم بإضافة حسابات جديدة بعد."}
+        return {"success": False, "error": "نفذت الكمية! المطور لم يقم بإضافة حسابات جديدة بعد."}
 
-    # 3. تسجيل الـ IP في قاعدة البيانات
+    # 3. حفظ الـ IP لمنع التكرار
     await ips_col.update_one(
         {"_id": client_ip},
         {"$set": {"last_claimed": now}},
@@ -245,9 +295,8 @@ async def get_account(request: Request):
 @app.get("/admin", response_class=HTMLResponse)
 async def admin_page(passkey: str = ""):
     if passkey != ADMIN_PASSWORD: 
-        return HTMLResponse("<h1 style='color:red;text-align:center;font-family:sans-serif;'>🚫 ممنوع</h1>", status_code=403)
+        return HTMLResponse("<h1 style='color:red;text-align:center;font-family:sans-serif;margin-top:50px;'>🚫 ممنوع الدخول</h1>", status_code=403)
     
-    # عد الحسابات المتوفرة (غير المأخوذة)
     count = await accounts_col.count_documents({"is_taken": False})
     return HTMLResponse(ADMIN_HTML_TEMPLATE.replace("__PASSKEY__", passkey).replace("__COUNT__", str(count)))
 
@@ -267,7 +316,7 @@ async def admin_add_manual(passkey: str = Form(...), accounts_data: str = Form(.
     if docs:
         await accounts_col.insert_many(docs)
         
-    return HTMLResponse(f"<script>alert('تم إضافة {len(docs)} حساب بنجاح إلى السحابة!'); window.location.href='/admin?passkey={passkey}';</script>")
+    return HTMLResponse(f"<script>alert('تم إضافة {len(docs)} حساب بنجاح!'); window.location.href='/admin?passkey={passkey}';</script>")
 
 @app.post("/admin/upload")
 async def admin_upload(passkey: str = Form(...), file: UploadFile = File(...)):
@@ -286,7 +335,7 @@ async def admin_upload(passkey: str = Form(...), file: UploadFile = File(...)):
     if docs:
         await accounts_col.insert_many(docs)
         
-    return HTMLResponse(f"<script>alert('تم إضافة {len(docs)} حساب بنجاح إلى السحابة!'); window.location.href='/admin?passkey={passkey}';</script>")
+    return HTMLResponse(f"<script>alert('تم إضافة {len(docs)} حساب بنجاح!'); window.location.href='/admin?passkey={passkey}';</script>")
 
 # ==================== 🚀 التشغيل ====================
 if __name__ == "__main__":
